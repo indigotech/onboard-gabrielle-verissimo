@@ -1,3 +1,6 @@
 .dist
 node_modules
 .vscode
+generated
+.bd-read-system/
+.bd-read-system-test/
