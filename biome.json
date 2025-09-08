@@ -1,0 +1,60 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.2.2/schema.json",
+  "files": {
+    "includes": ["**/*.ts", "!*-pruned", "!**/node_modules", "!**/dist"]
+  },
+  "linter": {
+    "rules": {
+      "complexity": {
+        "noForEach": "off",
+        "noStaticOnlyClass": "off"
+      },
+      "suspicious": {
+        "noExplicitAny": "off",
+        "noArrayIndexKey": "off",
+        "noConsole": {
+          "level": "warn",
+          "options": { "allow": ["error"] }
+        }
+      },
+      "style": {
+        "noNonNullAssertion": "off",
+        "noImplicitBoolean": "off",
+        "noParameterAssign": "off",
+        "noUselessElse": "warn"
+      },
+      "correctness": {
+        "useHookAtTopLevel": "error",
+        "noUnusedImports": "error",
+        "noUnusedVariables": {
+          "level": "error",
+          "options": { "ignoreRestSiblings": true }
+        },
+        "useUniqueElementIds": "off"
+      },
+      "nursery": {
+        "noMisusedPromises": "warn",
+        "noFloatingPromises": "warn"
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "jsxQuoteStyle": "double",
+      "quoteStyle": "single",
+      "bracketSameLine": true,
+      "bracketSpacing": true,
+      "trailingCommas": "all",
+      "arrowParentheses": "asNeeded"
+    }
+  },
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": false,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 120,
+    "includes": ["**"],
+    "lineEnding": "lf"
+  }
+}
