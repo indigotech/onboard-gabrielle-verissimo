@@ -5,4 +5,4 @@ generated
 .bd-read-system/
 .bd-read-system-test/
 .env
-.env.test
+

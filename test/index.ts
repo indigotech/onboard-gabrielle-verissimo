@@ -5,7 +5,6 @@ import { closeServer, runServer } from '../src/server';
 import { UserReq } from '../src/user/user.model';
 
 const port: number = process.env.PORT ? parseInt(process.env.PORT, 10) : 8081;
-const prisma = prismaInstance;
 const endpoint = axios.create({
   baseURL: `http://localhost:${port}`,
 });
@@ -18,7 +17,6 @@ const input: UserReq = {
 
 before(async () => {
   try {
-    await prisma.$connect();
     await runServer(port);
   } catch (error) {
     console.error(error);
@@ -34,18 +32,28 @@ describe('Hello, world endpoint', () => {
 });
 
 describe('Create user endpoint', () => {
-  it('Response sucess', async () => {
+  it('Response and create sucess', async () => {
     const response = await endpoint.post('/users', input);
-    chai.expect(response.status).to.be.eq(201);
-    chai.expect(response.data).to.have.deep.property('id');
+    chai.expect(response.status).to.be.deep.eq(201);
+    const userCreated = await prismaInstance.user.findUnique({
+      where: {
+        email: input.email,
+      },
+    });
+    //Comparação de usuário criado no banco com dados do input e response
+    chai.expect(userCreated?.id).to.be.deep.eq(response.data.id);
+    chai.expect(userCreated?.name).to.be.deep.eq(input.name);
+    chai.expect(userCreated?.email).to.be.deep.eq(input.email);
+    chai.expect(userCreated?.birthDate).to.be.deep.eq(input.birthDate);
+    chai.expect(userCreated?.password).to.not.be.deep.eq(input.password);
     chai.expect(response.data.name).to.be.deep.eq(input.name);
     chai.expect(response.data.email).to.be.deep.eq(input.email);
     chai.expect(response.data.birthDate).to.be.deep.eq(input.birthDate);
-    chai.expect(response.data).to.not.have.property('password');
+    chai.expect(response.data).to.not.be.deep.eq(input.password);
   });
 });
 
 after(async () => {
-  await prisma.$disconnect();
+  await prismaInstance.$disconnect();
   await closeServer();
 });
