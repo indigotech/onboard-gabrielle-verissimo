@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { UserReq } from './user.model';
+import { UserCreateReq } from './user.model';
 
 const email = z.email();
 const password = z
@@ -8,7 +8,7 @@ const password = z
   .regex(/[a-zA-Z]/, { message: 'Password must contain at least one letter.' })
   .regex(/[0-9]/, { message: 'Password must contain at least one digit.' });
 
-export function createUserValidation(user: UserReq) {
+export function createUserValidation(user: UserCreateReq) {
   const userEmail = email.safeParse(user.email);
   const userPassword = password.safeParse(user.password);
   return [userEmail, userPassword];

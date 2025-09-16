@@ -1,4 +1,4 @@
-import { UserRep, UserReq } from './user.model';
+import { UserCreateRep, UserCreateReq } from './user.model';
 import { createUserValidation } from './user.validation';
 import { hashPassword } from '../utils/hash';
 import prismaInstance from '../db';
@@ -6,7 +6,7 @@ import UserError from '../errors/error-user-handling';
 
 const prisma = prismaInstance;
 
-export async function create(user: UserReq) {
+export async function create(user: UserCreateReq) {
   const [userEmail, userPassword] = createUserValidation(user);
   if (!userEmail?.success) {
     const errorEmail: string = userEmail?.error.issues.map(e => e.message).join(' ') || '';
@@ -42,10 +42,14 @@ export async function create(user: UserReq) {
     },
   });
 
-  const reply: UserRep = post;
+  const reply: UserCreateRep = post;
   delete reply.password;
 
   return reply;
+}
+
+export async function auth(user: any, token: string) {
+  return { user: user, token: token };
 }
 
 async function findByEmail(email: string) {

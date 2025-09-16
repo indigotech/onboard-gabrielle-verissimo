@@ -2,21 +2,22 @@ import axios from 'axios';
 import { expect } from 'chai';
 import prismaInstance from '../src/db';
 import { closeServer, runServer } from '../src/server';
-import { UserReq } from '../src/user/user.model';
 import { verifyPassword } from '../src/utils/hash';
+import { UserCreateReq } from '../src/user/user.model';
+
 const port: number = process.env.PORT ? parseInt(process.env.PORT, 10) : 8081;
 const endpoint = axios.create({
   baseURL: `http://localhost:${port}`,
 });
 
-const inputCreateUser: UserReq = {
+const inputCreateUser: UserCreateReq = {
   name: 'João',
   email: 'joao@gmail.com',
   password: 'senha123',
   birthDate: '09-09-2001',
 };
 
-const input: UserReq = {
+const input: UserCreateReq = {
   name: 'Gabrielle',
   email: 'gabi@gmail.com',
   password: 'coxinha12',
@@ -76,7 +77,7 @@ describe('Create user endpoint', () => {
     });
 
     describe('Password invalid', () => {
-      const inputPasswordWithoutDigit: UserReq = {
+      const inputPasswordWithoutDigit: UserCreateReq = {
         name: 'Gabrielle',
         email: 'gabi@gmail.com',
         password: 'coxinha',
@@ -97,7 +98,7 @@ describe('Create user endpoint', () => {
       });
     });
     it('Error when password is less than 6 characters', async () => {
-      const inputPasswordLessThan6: UserReq = {
+      const inputPasswordLessThan6: UserCreateReq = {
         name: 'Gabrielle',
         email: 'gabi@gmail.com',
         password: 'coxi1',
@@ -117,7 +118,7 @@ describe('Create user endpoint', () => {
     });
 
     it('Error when password does not contain a letter', async () => {
-      const inputPasswordNoLetter: UserReq = {
+      const inputPasswordNoLetter: UserCreateReq = {
         name: 'Gabrielle',
         email: 'gabi@gmail.com',
         password: '1234567',
@@ -136,7 +137,7 @@ describe('Create user endpoint', () => {
       }
     });
     it('Error when password is less than 6 characters and does not contain a digit', async () => {
-      const inputPasswordLessThan6NoDigit: UserReq = {
+      const inputPasswordLessThan6NoDigit: UserCreateReq = {
         name: 'Gabrielle',
         email: 'gabi@gmail.com',
         password: 'coxi',
@@ -155,7 +156,7 @@ describe('Create user endpoint', () => {
       }
     });
     it('Error when password is less than 6 characters and does not contain a letter', async () => {
-      const inputPasswordLessThan6NoLetter: UserReq = {
+      const inputPasswordLessThan6NoLetter: UserCreateReq = {
         name: 'Gabrielle',
         email: 'gabi@gmail.com',
         password: '1234',
@@ -174,7 +175,7 @@ describe('Create user endpoint', () => {
       }
     });
     it('Error when password does not contain a letter and does not contain a digit', async () => {
-      const inputPasswordNoLetterNoDigit: UserReq = {
+      const inputPasswordNoLetterNoDigit: UserCreateReq = {
         name: 'Gabrielle',
         email: 'gabi@gmail.com',
         password: '!!!!!!!!',
@@ -193,7 +194,7 @@ describe('Create user endpoint', () => {
       }
     });
     it('Error when password is less than 6 characters and does not contain a letter and does not contain a digit', async () => {
-      const inputPasswordAllInvalid: UserReq = {
+      const inputPasswordAllInvalid: UserCreateReq = {
         name: 'Gabrielle',
         email: 'gabi@gmail.com',
         password: '!!!',
@@ -213,7 +214,7 @@ describe('Create user endpoint', () => {
       }
     });
     it('Error when email is invalid', async () => {
-      const inputEmailInvalid: UserReq = {
+      const inputEmailInvalid: UserCreateReq = {
         name: 'Gabrielle',
         email: 'gabriellegmail.com',
         password: 'coxinha123',

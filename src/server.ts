@@ -1,5 +1,5 @@
 import Fastify from 'fastify';
-import { createUser } from './user/user.controller';
+import { authUser, createUser } from './user/user.controller';
 import UserError from './errors/error-user-handling';
 
 const app = Fastify();
@@ -21,6 +21,7 @@ export async function runServer(port: number) {
   });
 
   app.post('/users', createUser);
+  app.post('/auth', authUser);
 
   try {
     const server = await app.listen({ port });
