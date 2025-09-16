@@ -1,7 +1,28 @@
-import { FastifyInstance } from 'fastify';
+import Fastify from 'fastify';
+import { createUser } from './user/user.controller';
 
-export function runServer(app: FastifyInstance, port: number) {
-  app.listen({ port }).then(() => {
-    console.log(`The server is running on port ${port}`);
+const app = Fastify();
+
+export async function runServer(port: number) {
+  app.get('/hello', () => {
+    return 'hello, world!';
   });
+
+  app.post('/users', createUser);
+
+  try {
+    const server = await app.listen({ port });
+    console.log(`The server is running on port ${port}`);
+    return server;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function closeServer() {
+  try {
+    await app.close();
+  } catch (error) {
+    console.log('an error happened', error);
+  }
 }

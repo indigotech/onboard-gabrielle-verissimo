@@ -1,9 +1,9 @@
-import { PrismaClient } from '@prisma/client';
 import { UserRep, UserReq } from './user.model';
 import { createUserValidation } from './user.validation';
 import { hashPassword } from '../utils/hash';
+import prismaInstance from '../db';
 
-const prisma = new PrismaClient();
+const prisma = prismaInstance;
 
 export async function create(user: UserReq) {
   const [userEmail, userPassword] = createUserValidation(user);
@@ -13,7 +13,7 @@ export async function create(user: UserReq) {
   if (!userPassword?.success) {
     throw new Error(userPassword?.error.message);
   }
-  const existsEmail = await uniqueEmail(user.email);
+  const existsEmail = await findByEmail(user.email);
 
   if (existsEmail) {
     throw new Error('Já existe um usuario com esse email.');
@@ -34,7 +34,7 @@ export async function create(user: UserReq) {
   return reply;
 }
 
-async function uniqueEmail(email: string) {
+async function findByEmail(email: string) {
   try {
     const uniqueEmail = await prisma.user.findUnique({
       where: {
