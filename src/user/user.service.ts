@@ -1,6 +1,6 @@
 import { UserCreateRep, UserCreateReq } from './user.model';
 import { createUserValidation } from './user.validation';
-import { hashPassword, hashPassword } from '../utils/hash';
+import { hashPassword, verifyPassword } from '../utils/hash';
 import prismaInstance from '../db';
 import UserError from '../errors/error-user-handling';
 
@@ -49,16 +49,15 @@ export async function create(user: UserCreateReq) {
 }
 
 export async function auth(email: string, password: string) {
-  const hash = await hashPassword(password);
   const existsUser = await findByEmail(email);
-  if(!existsUser){
-    const error = new CreateUserError(
+  if (!existsUser) {
+    const error = new UserError(
       400,
       'Login fail',
       'USR_04',
       'No user was found with that email. Please check if you entered the correct email address or register.',
     );
-    if (error instanceof CreateUserError) {
+    if (error instanceof UserError) {
       throw {
         statusCode: error.statusCode,
         code: error.code,
@@ -68,16 +67,10 @@ export async function auth(email: string, password: string) {
       };
     }
   }
-  if(hash !== existsUser.password){
-    console.log('hash: ', hash);
-    console.log('senha: ', existsUser.password)
-      const error = new CreateUserError(
-      400,
-      'Login fail',
-      'USR_05',
-      'Incorrect password. Try again.',
-    );
-    if (error instanceof CreateUserError) {
+  const verifyHash = await verifyPassword(existsUser.password, password);
+  if (!verifyHash) {
+    const error = new UserError(400, 'Login fail', 'USR_05', 'Incorrect password. Try again.');
+    if (error instanceof UserError) {
       throw {
         statusCode: error.statusCode,
         code: error.code,
@@ -85,11 +78,12 @@ export async function auth(email: string, password: string) {
         message: error.message,
         details: error.details,
       };
-    }  
+    }
   }
+
   delete existsUser.password;
   const token = '';
-  return {existsUser, token};
+  return { existsUser, token };
 }
 
 async function findByEmail(email: string) {
