@@ -47,7 +47,7 @@ describe('Create user endpoint', () => {
     chai.expect(userCreated.name).to.be.deep.eq(input.name);
     chai.expect(userCreated.email).to.be.deep.eq(input.email);
     chai.expect(userCreated.birthDate).to.be.deep.eq(input.birthDate);
-    chai.expect(userCreated.password).to.not.be.deep.eq(hash);
+    chai.expect(userCreated.password).to.be.deep.eq(hash);
     chai.expect(response.data.name).to.be.deep.eq(input.name);
     chai.expect(response.data.email).to.be.deep.eq(input.email);
     chai.expect(response.data.birthDate).to.be.deep.eq(input.birthDate);
