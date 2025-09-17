@@ -3,7 +3,7 @@ import * as chai from 'chai';
 import prismaInstance from '../src/db';
 import { closeServer, runServer } from '../src/server';
 import { UserReq } from '../src/user/user.model';
-import { hashPassword } from '../src/utils/hash';
+import { hashPassword, verifyPassword } from '../src/utils/hash';
 
 const port: number = process.env.PORT ? parseInt(process.env.PORT, 10) : 8081;
 const endpoint = axios.create({
@@ -35,9 +35,7 @@ describe('Hello, world endpoint', () => {
 describe('Create user endpoint', () => {
   it('Response and create sucess', async () => {
     const hash = await hashPassword(input.password);
-
     const response = await endpoint.post('/users', input);
-    chai.expect(response.status).to.be.deep.eq(201);
     const userCreated = (await prismaInstance.user.findUnique({
       where: {
         email: input.email,
@@ -47,11 +45,13 @@ describe('Create user endpoint', () => {
     chai.expect(userCreated.name).to.be.deep.eq(input.name);
     chai.expect(userCreated.email).to.be.deep.eq(input.email);
     chai.expect(userCreated.birthDate).to.be.deep.eq(input.birthDate);
-    chai.expect(userCreated.password).to.be.deep.eq(hash);
+    const verifyHash = await verifyPassword(hash, input.password);
+    chai.expect(verifyHash).to.be.eq(true);
+    chai.expect(response.status).to.be.deep.eq(201);
     chai.expect(response.data.name).to.be.deep.eq(input.name);
     chai.expect(response.data.email).to.be.deep.eq(input.email);
     chai.expect(response.data.birthDate).to.be.deep.eq(input.birthDate);
-    chai.expect(response.data).to.not.be.deep.eq(input.password);
+    chai.expect(response.data).to.not.have.property('password');
   });
 });
 

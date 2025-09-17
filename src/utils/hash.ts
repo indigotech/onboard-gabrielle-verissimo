@@ -9,3 +9,14 @@ export async function hashPassword(password: string) {
     return 'erro no hash da senha';
   }
 }
+
+export async function verifyPassword(hash: string, password: string) {
+  try {
+    if (await argon2.verify(hash, password)) {
+      return true;
+    }
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
