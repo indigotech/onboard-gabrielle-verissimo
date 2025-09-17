@@ -21,11 +21,13 @@ export async function createUser(request: FastifyRequest<{ Body: UserCreateReq }
   }
 }
 
-export async function authUser(request: FastifyRequest, reply: FastifyReply) {
+export async function authUser(request: FastifyRequest<{ Body: string }>, reply: FastifyReply) {
+  const { email, password } = request.body;
   try {
-    const rep = await auth(mock.user, mock.token);
+    const rep = await auth(email, password);
     reply.send(rep);
-  } catch (error) {
-    console.log(error);
+  } catch (error: any) {
+    const statusCode = error.statusCode || 500;
+    reply.status(statusCode).send(error);
   }
 }

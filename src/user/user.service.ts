@@ -1,6 +1,6 @@
 import { UserCreateRep, UserCreateReq } from './user.model';
 import { createUserValidation } from './user.validation';
-import { hashPassword } from '../utils/hash';
+import { hashPassword, hashPassword } from '../utils/hash';
 import prismaInstance from '../db';
 import UserError from '../errors/error-user-handling';
 
@@ -48,8 +48,48 @@ export async function create(user: UserCreateReq) {
   return reply;
 }
 
-export async function auth(user: any, token: string) {
-  return { user: user, token: token };
+export async function auth(email: string, password: string) {
+  const hash = await hashPassword(password);
+  const existsUser = await findByEmail(email);
+  if(!existsUser){
+    const error = new CreateUserError(
+      400,
+      'Login fail',
+      'USR_04',
+      'No user was found with that email. Please check if you entered the correct email address or register.',
+    );
+    if (error instanceof CreateUserError) {
+      throw {
+        statusCode: error.statusCode,
+        code: error.code,
+        error: error.name,
+        message: error.message,
+        details: error.details,
+      };
+    }
+  }
+  if(hash !== existsUser.password){
+    console.log('hash: ', hash);
+    console.log('senha: ', existsUser.password)
+      const error = new CreateUserError(
+      400,
+      'Login fail',
+      'USR_05',
+      'Incorrect password. Try again.',
+    );
+    if (error instanceof CreateUserError) {
+      throw {
+        statusCode: error.statusCode,
+        code: error.code,
+        error: error.name,
+        message: error.message,
+        details: error.details,
+      };
+    }  
+  }
+  delete existsUser.password;
+  const token = '';
+  return {existsUser, token};
 }
 
 async function findByEmail(email: string) {
