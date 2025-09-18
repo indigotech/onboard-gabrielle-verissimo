@@ -82,7 +82,6 @@ export async function auth(email: string, password: string) {
     }
     delete existsUser.password;
   }
-
   const token = '';
   return { existsUser, token };
 }
