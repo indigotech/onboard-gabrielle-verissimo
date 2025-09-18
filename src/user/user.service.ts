@@ -66,22 +66,23 @@ export async function auth(email: string, password: string) {
         details: error.details,
       };
     }
-  }
-  const verifyHash = await verifyPassword(existsUser.password, password);
-  if (!verifyHash) {
-    const error = new UserError(400, 'Login fail', 'USR_05', 'Incorrect password. Try again.');
-    if (error instanceof UserError) {
-      throw {
-        statusCode: error.statusCode,
-        code: error.code,
-        error: error.name,
-        message: error.message,
-        details: error.details,
-      };
+  } else {
+    const verifyHash = await verifyPassword(existsUser.password, password);
+    if (!verifyHash) {
+      const error = new UserError(400, 'Login fail', 'USR_05', 'Incorrect password. Try again.');
+      if (error instanceof UserError) {
+        throw {
+          statusCode: error.statusCode,
+          code: error.code,
+          error: error.name,
+          message: error.message,
+          details: error.details,
+        };
+      }
     }
+    delete existsUser.password;
   }
 
-  delete existsUser.password;
   const token = '';
   return { existsUser, token };
 }

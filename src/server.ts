@@ -1,8 +1,17 @@
+import fastifyJwt from '@fastify/jwt';
 import Fastify from 'fastify';
 import { authUser, createUser } from './user/user.controller';
 import UserError from './errors/error-user-handling';
 
 const app = Fastify();
+app.register(fastifyJwt, {
+  secret: process.env.SECRET_JWT || 'supersecret',
+});
+
+export function generateToken(userId: string, rememberMe: boolean = false) {
+  const timeExpire = rememberMe ? '7d' : '1h';
+  return app.jwt.sign({ userId: userId }, { expiresIn: timeExpire });
+}
 
 export async function runServer(port: number) {
   app.setErrorHandler((error, _request, reply) => {

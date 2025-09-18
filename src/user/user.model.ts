@@ -8,3 +8,9 @@ export interface UserCreateReq {
 export interface UserCreateRep extends Partial<UserCreateReq> {
   id: string;
 }
+
+export interface UserAuthReq {
+  email: string;
+  password: string;
+  rememberMe?: boolean;
+}
