@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "tsx watch src/index.ts",
-    "test": "mocha test/index.ts"
+    "test": "dotenv -e test.env -- mocha test/index.ts",
+    "prisma:test": "dotenv -e .env.test -- prisma migrate dev --name init"
   },
   "keywords": [],
   "author": "",
@@ -15,12 +16,15 @@
     "@prisma/client": "6.15.0",
     "argon2": "0.44.0",
     "axios": "1.12.0",
+    "chai": "6.0.1",
     "dotenv": "17.2.2",
+    "dotenv-cli": "10.0.0",
     "fastify": "5.5.0",
     "zod": "4.1.5"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.2",
+    "@types/chai": "5.2.2",
     "@types/mocha": "10.0.10",
     "@types/node": "24.3.1",
     "mocha": "11.7.2",
