@@ -2,21 +2,35 @@ import { UserRep, UserReq } from './user.model';
 import { createUserValidation } from './user.validation';
 import { hashPassword } from '../utils/hash';
 import prismaInstance from '../db';
+import UserError from '../errors/error-user-handling';
 
 const prisma = prismaInstance;
 
 export async function create(user: UserReq) {
   const [userEmail, userPassword] = createUserValidation(user);
   if (!userEmail?.success) {
-    throw new Error(userEmail?.error.message);
+    const errorEmail: string = userEmail?.error.issues.map(e => e.message).join(' ') || '';
+    throw new UserError(400, errorEmail, 'USR_02', 'Invalid email. Please check if you entered the email correctly.');
   }
   if (!userPassword?.success) {
-    throw new Error(userPassword?.error.message);
+    const errorPassword: string = userPassword?.error.issues.map(e => e.message).join(' ') || '';
+
+    throw new UserError(
+      400,
+      errorPassword,
+      'USR_01',
+      'The password must contain at least 6 characters and among them there must be at least 1 letter and 1 digit.',
+    );
   }
   const existsEmail = await findByEmail(user.email);
 
   if (existsEmail) {
-    throw new Error('Já existe um usuario com esse email.');
+    throw new UserError(
+      400,
+      'Invalid credential',
+      'USR_03',
+      'There is already a user registered with this email. Please provide a different email address.',
+    );
   }
   user.password = await hashPassword(user.password);
   const post = await prisma.user.create({

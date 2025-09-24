@@ -1,9 +1,21 @@
 import Fastify from 'fastify';
 import { createUser } from './user/user.controller';
+import UserError from './errors/error-user-handling';
 
 const app = Fastify();
 
 export async function runServer(port: number) {
+  app.setErrorHandler((error, _request, reply) => {
+    if (error instanceof UserError) {
+      reply.status(error.statusCode).send({
+        code: error.code,
+        message: error.message,
+        details: error.details,
+      });
+    } else {
+      reply.status(500).send({ error: 'Internal Server Error' });
+    }
+  });
   app.get('/hello', () => {
     return 'hello, world!';
   });

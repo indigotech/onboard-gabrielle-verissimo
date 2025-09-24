@@ -19,4 +19,5 @@ export async function verifyPassword(hash: string, password: string) {
     console.log(error);
     return false;
   }
+  return false;
 }
