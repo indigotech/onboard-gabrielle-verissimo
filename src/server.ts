@@ -21,8 +21,9 @@ export function generateToken(userId: string, rememberMe: boolean = false) {
 app.decorate('authenticate', async (request: FastifyRequest, reply: FastifyReply) => {
   try {
     await request.jwtVerify();
-  } catch (error) {
-    reply.code(401).send(error);
+  } catch (_error) {
+    const userError = new UserError(401, 'authentication failure', 'USR_10', 'Invalid Token');
+    reply.code(userError.statusCode).send(userError);
   }
 });
 

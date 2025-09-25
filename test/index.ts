@@ -20,8 +20,13 @@ const inputCreateUser: UserCreateReq = {
 const input: UserCreateReq = {
   name: 'Gabrielle',
   email: 'gabi@gmail.com',
-  password: 'coxinha12',
+  password: 'coxinha123',
   birthDate: '02-12-2000',
+};
+let token: string;
+const inputLogin = {
+  email: 'gabi@gmail.com',
+  password: 'coxinha123',
 };
 
 before(async () => {
@@ -40,9 +45,71 @@ describe('Hello, world endpoint', () => {
   });
 });
 
+describe('Auth user endpoint', () => {
+  it('Response and auth success', async () => {
+    const response = await endpoint.post('/auth', inputLogin);
+    const userLogged = (await prismaInstance.user.findUnique({
+      where: {
+        email: inputLogin.email,
+      },
+    }))!;
+    expect(response.status).to.be.deep.eq(200);
+    expect(response.data.user).to.be.deep.eq({
+      id: userLogged.id,
+      name: userLogged.name,
+      email: userLogged.email,
+      birthDate: userLogged.birthDate,
+    });
+    expect(response.data).to.have.property('token');
+    token = response.data.token;
+  });
+
+  describe('Auth error', () => {
+    it('Wrong email', async () => {
+      const loginEmailError = {
+        email: 'jub@gmail.com',
+        password: 'coxinha123',
+      };
+      const errorWrongEmail = {
+        code: 'USR_04',
+        message: 'Login fail',
+        details:
+          'No user was found with that email. Please check if you entered the correct email address or register.',
+      };
+      try {
+        await endpoint.post('/auth', loginEmailError);
+      } catch (error: any) {
+        expect(error.response.status).to.be.deep.eq(400);
+        expect(error.response.data).to.be.deep.eq(errorWrongEmail);
+      }
+    });
+    it('Wrong password', async () => {
+      const loginPasswordError = {
+        email: 'gabi@gmail.com',
+        password: 'coxinha23',
+      };
+      const errorWrongPassword = {
+        code: 'USR_05',
+        message: 'Login fail',
+        details: 'Incorrect password. Try again.',
+      };
+      try {
+        await endpoint.post('/auth', loginPasswordError);
+      } catch (error: any) {
+        expect(error.response.status).to.be.deep.eq(400);
+        expect(error.response.data).to.be.deep.eq(errorWrongPassword);
+      }
+    });
+  });
+});
+
 describe('Create user endpoint', () => {
   it('Response and create success', async () => {
-    const response = await endpoint.post('/users', inputCreateUser);
+    const response = await endpoint.post('/users', inputCreateUser, {
+      headers: {
+        Authorization: token,
+      },
+    });
     const userCreated = (await prismaInstance.user.findUnique({
       where: {
         email: inputCreateUser.email,
@@ -63,174 +130,228 @@ describe('Create user endpoint', () => {
   });
 
   describe('Errors creating user', () => {
-    it('Error when email already exists', async () => {
+    it('Error when jwt is invalid', async () => {
+      const errorJwt = {
+        code: 'USR_10',
+        message: 'authentication failure',
+        details: 'Invalid Token',
+      };
       try {
-        await endpoint.post('/users', input);
-      } catch (error: any) {
-        expect(error.response.status).to.be.deep.eq(400);
-        expect(error.response.data).to.be.deep.eq({
-          code: 'USR_03',
-          message: 'Invalid credential',
-          details: 'There is already a user registered with this email. Please provide a different email address.',
+        await endpoint.post('/users', inputCreateUser, {
+          headers: {
+            Authorization: '12344jajaja',
+          },
         });
+      } catch (error: any) {
+        expect(error.response.status).to.be.deep.eq(401);
+        expect(error.response.data).to.be.deep.eq(errorJwt);
       }
     });
+  });
 
-    describe('Password invalid', () => {
-      const inputPasswordWithoutDigit: UserCreateReq = {
-        name: 'Gabrielle',
-        email: 'gabi@gmail.com',
-        password: 'coxinha',
-        birthDate: '02-12-2000',
-      };
-      it('Error when password does not contain a digit', async () => {
-        try {
-          await endpoint.post('/users', inputPasswordWithoutDigit);
-        } catch (error: any) {
-          expect(error.response.status).to.be.deep.eq(400);
-          expect(error.response.data).to.be.deep.eq({
-            code: 'USR_01',
-            message: 'Password must contain at least one digit.',
-            details:
-              'The password must contain at least 6 characters and among them there must be at least 1 letter and 1 digit.',
-          });
-        }
+  it('Error when email already exists', async () => {
+    try {
+      await endpoint.post('/users', input, {
+        headers: {
+          Authorization: token,
+        },
       });
-    });
-    it('Error when password is less than 6 characters', async () => {
-      const inputPasswordLessThan6: UserCreateReq = {
-        name: 'Gabrielle',
-        email: 'gabi@gmail.com',
-        password: 'coxi1',
-        birthDate: '02-12-2000',
-      };
-      try {
-        await endpoint.post('/users', inputPasswordLessThan6);
-      } catch (error: any) {
-        expect(error.response.status).to.be.deep.eq(400);
-        expect(error.response.data).to.be.deep.eq({
-          code: 'USR_01',
-          message: 'Password must be at least 6 characters long.',
-          details:
-            'The password must contain at least 6 characters and among them there must be at least 1 letter and 1 digit.',
-        });
-      }
-    });
+    } catch (error: any) {
+      expect(error.response.status).to.be.deep.eq(400);
+      expect(error.response.data).to.be.deep.eq({
+        code: 'USR_03',
+        message: 'Invalid credential',
+        details: 'There is already a user registered with this email. Please provide a different email address.',
+      });
+    }
+  });
 
-    it('Error when password does not contain a letter', async () => {
-      const inputPasswordNoLetter: UserCreateReq = {
-        name: 'Gabrielle',
-        email: 'gabi@gmail.com',
-        password: '1234567',
-        birthDate: '02-12-2000',
-      };
+  describe('Password invalid', () => {
+    const inputPasswordWithoutDigit: UserCreateReq = {
+      name: 'Gabrielle',
+      email: 'gabi@gmail.com',
+      password: 'coxinha',
+      birthDate: '02-12-2000',
+    };
+    it('Error when password does not contain a digit', async () => {
       try {
-        await endpoint.post('/users', inputPasswordNoLetter);
+        await endpoint.post('/users', inputPasswordWithoutDigit, {
+          headers: {
+            Authorization: token,
+          },
+        });
       } catch (error: any) {
         expect(error.response.status).to.be.deep.eq(400);
         expect(error.response.data).to.be.deep.eq({
           code: 'USR_01',
-          message: 'Password must contain at least one letter.',
+          message: 'Password must contain at least one digit.',
           details:
             'The password must contain at least 6 characters and among them there must be at least 1 letter and 1 digit.',
         });
       }
     });
-    it('Error when password is less than 6 characters and does not contain a digit', async () => {
-      const inputPasswordLessThan6NoDigit: UserCreateReq = {
-        name: 'Gabrielle',
-        email: 'gabi@gmail.com',
-        password: 'coxi',
-        birthDate: '02-12-2000',
-      };
-      try {
-        await endpoint.post('/users', inputPasswordLessThan6NoDigit);
-      } catch (error: any) {
-        expect(error.response.status).to.be.deep.eq(400);
-        expect(error.response.data).to.be.deep.eq({
-          code: 'USR_01',
-          message: 'Password must be at least 6 characters long. Password must contain at least one digit.',
-          details:
-            'The password must contain at least 6 characters and among them there must be at least 1 letter and 1 digit.',
-        });
-      }
-    });
-    it('Error when password is less than 6 characters and does not contain a letter', async () => {
-      const inputPasswordLessThan6NoLetter: UserCreateReq = {
-        name: 'Gabrielle',
-        email: 'gabi@gmail.com',
-        password: '1234',
-        birthDate: '02-12-2000',
-      };
-      try {
-        await endpoint.post('/users', inputPasswordLessThan6NoLetter);
-      } catch (error: any) {
-        expect(error.response.status).to.be.deep.eq(400);
-        expect(error.response.data).to.be.deep.eq({
-          code: 'USR_01',
-          message: 'Password must be at least 6 characters long. Password must contain at least one letter.',
-          details:
-            'The password must contain at least 6 characters and among them there must be at least 1 letter and 1 digit.',
-        });
-      }
-    });
-    it('Error when password does not contain a letter and does not contain a digit', async () => {
-      const inputPasswordNoLetterNoDigit: UserCreateReq = {
-        name: 'Gabrielle',
-        email: 'gabi@gmail.com',
-        password: '!!!!!!!!',
-        birthDate: '02-12-2000',
-      };
-      try {
-        await endpoint.post('/users', inputPasswordNoLetterNoDigit);
-      } catch (error: any) {
-        expect(error.response.status).to.be.deep.eq(400);
-        expect(error.response.data).to.be.deep.eq({
-          code: 'USR_01',
-          message: 'Password must contain at least one letter. Password must contain at least one digit.',
-          details:
-            'The password must contain at least 6 characters and among them there must be at least 1 letter and 1 digit.',
-        });
-      }
-    });
-    it('Error when password is less than 6 characters and does not contain a letter and does not contain a digit', async () => {
-      const inputPasswordAllInvalid: UserCreateReq = {
-        name: 'Gabrielle',
-        email: 'gabi@gmail.com',
-        password: '!!!',
-        birthDate: '02-12-2000',
-      };
-      try {
-        await endpoint.post('/users', inputPasswordAllInvalid);
-      } catch (error: any) {
-        expect(error.response.status).to.be.deep.eq(400);
-        expect(error.response.data).to.be.deep.eq({
-          code: 'USR_01',
-          message:
-            'Password must be at least 6 characters long. Password must contain at least one letter. Password must contain at least one digit.',
-          details:
-            'The password must contain at least 6 characters and among them there must be at least 1 letter and 1 digit.',
-        });
-      }
-    });
-    it('Error when email is invalid', async () => {
-      const inputEmailInvalid: UserCreateReq = {
-        name: 'Gabrielle',
-        email: 'gabriellegmail.com',
-        password: 'coxinha123',
-        birthDate: '02-12-2000',
-      };
-      try {
-        await endpoint.post('/users', inputEmailInvalid);
-      } catch (error: any) {
-        expect(error.response.status).to.be.deep.eq(400);
-        expect(error.response.data).to.be.deep.eq({
-          code: 'USR_02',
-          message: 'Invalid email address',
-          details: 'Invalid email. Please check if you entered the email correctly.',
-        });
-      }
-    });
+  });
+  it('Error when password is less than 6 characters', async () => {
+    const inputPasswordLessThan6: UserCreateReq = {
+      name: 'Gabrielle',
+      email: 'gabi@gmail.com',
+      password: 'coxi1',
+      birthDate: '02-12-2000',
+    };
+    try {
+      await endpoint.post('/users', inputPasswordLessThan6, {
+        headers: {
+          Authorization: token,
+        },
+      });
+    } catch (error: any) {
+      expect(error.response.status).to.be.deep.eq(400);
+      expect(error.response.data).to.be.deep.eq({
+        code: 'USR_01',
+        message: 'Password must be at least 6 characters long.',
+        details:
+          'The password must contain at least 6 characters and among them there must be at least 1 letter and 1 digit.',
+      });
+    }
+  });
+
+  it('Error when password does not contain a letter', async () => {
+    const inputPasswordNoLetter: UserCreateReq = {
+      name: 'Gabrielle',
+      email: 'gabi@gmail.com',
+      password: '1234567',
+      birthDate: '02-12-2000',
+    };
+    try {
+      await endpoint.post('/users', inputPasswordNoLetter, {
+        headers: {
+          Authorization: token,
+        },
+      });
+    } catch (error: any) {
+      expect(error.response.status).to.be.deep.eq(400);
+      expect(error.response.data).to.be.deep.eq({
+        code: 'USR_01',
+        message: 'Password must contain at least one letter.',
+        details:
+          'The password must contain at least 6 characters and among them there must be at least 1 letter and 1 digit.',
+      });
+    }
+  });
+  it('Error when password is less than 6 characters and does not contain a digit', async () => {
+    const inputPasswordLessThan6NoDigit: UserCreateReq = {
+      name: 'Gabrielle',
+      email: 'gabi@gmail.com',
+      password: 'coxi',
+      birthDate: '02-12-2000',
+    };
+    try {
+      await endpoint.post('/users', inputPasswordLessThan6NoDigit, {
+        headers: {
+          Authorization: token,
+        },
+      });
+    } catch (error: any) {
+      expect(error.response.status).to.be.deep.eq(400);
+      expect(error.response.data).to.be.deep.eq({
+        code: 'USR_01',
+        message: 'Password must be at least 6 characters long. Password must contain at least one digit.',
+        details:
+          'The password must contain at least 6 characters and among them there must be at least 1 letter and 1 digit.',
+      });
+    }
+  });
+  it('Error when password is less than 6 characters and does not contain a letter', async () => {
+    const inputPasswordLessThan6NoLetter: UserCreateReq = {
+      name: 'Gabrielle',
+      email: 'gabi@gmail.com',
+      password: '1234',
+      birthDate: '02-12-2000',
+    };
+    try {
+      await endpoint.post('/users', inputPasswordLessThan6NoLetter, {
+        headers: {
+          Authorization: token,
+        },
+      });
+    } catch (error: any) {
+      expect(error.response.status).to.be.deep.eq(400);
+      expect(error.response.data).to.be.deep.eq({
+        code: 'USR_01',
+        message: 'Password must be at least 6 characters long. Password must contain at least one letter.',
+        details:
+          'The password must contain at least 6 characters and among them there must be at least 1 letter and 1 digit.',
+      });
+    }
+  });
+  it('Error when password does not contain a letter and does not contain a digit', async () => {
+    const inputPasswordNoLetterNoDigit: UserCreateReq = {
+      name: 'Gabrielle',
+      email: 'gabi@gmail.com',
+      password: '!!!!!!!!',
+      birthDate: '02-12-2000',
+    };
+    try {
+      await endpoint.post('/users', inputPasswordNoLetterNoDigit, {
+        headers: {
+          Authorization: token,
+        },
+      });
+    } catch (error: any) {
+      expect(error.response.status).to.be.deep.eq(400);
+      expect(error.response.data).to.be.deep.eq({
+        code: 'USR_01',
+        message: 'Password must contain at least one letter. Password must contain at least one digit.',
+        details:
+          'The password must contain at least 6 characters and among them there must be at least 1 letter and 1 digit.',
+      });
+    }
+  });
+  it('Error when password is less than 6 characters and does not contain a letter and does not contain a digit', async () => {
+    const inputPasswordAllInvalid: UserCreateReq = {
+      name: 'Gabrielle',
+      email: 'gabi@gmail.com',
+      password: '!!!',
+      birthDate: '02-12-2000',
+    };
+    try {
+      await endpoint.post('/users', inputPasswordAllInvalid, {
+        headers: {
+          Authorization: token,
+        },
+      });
+    } catch (error: any) {
+      expect(error.response.status).to.be.deep.eq(400);
+      expect(error.response.data).to.be.deep.eq({
+        code: 'USR_01',
+        message:
+          'Password must be at least 6 characters long. Password must contain at least one letter. Password must contain at least one digit.',
+        details:
+          'The password must contain at least 6 characters and among them there must be at least 1 letter and 1 digit.',
+      });
+    }
+  });
+  it('Error when email is invalid', async () => {
+    const inputEmailInvalid: UserCreateReq = {
+      name: 'Gabrielle',
+      email: 'gabriellegmail.com',
+      password: 'coxinha123',
+      birthDate: '02-12-2000',
+    };
+    try {
+      await endpoint.post('/users', inputEmailInvalid, {
+        headers: {
+          Authorization: token,
+        },
+      });
+    } catch (error: any) {
+      expect(error.response.status).to.be.deep.eq(400);
+      expect(error.response.data).to.be.deep.eq({
+        code: 'USR_02',
+        message: 'Invalid email address',
+        details: 'Invalid email. Please check if you entered the email correctly.',
+      });
+    }
   });
 });
 

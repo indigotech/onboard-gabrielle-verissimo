@@ -14,7 +14,7 @@ export async function create(user: UserCreateReq) {
   }
   if (!userPassword?.success) {
     const errorPassword: string = userPassword?.error.issues.map(e => e.message).join(' ') || '';
-
+    console.log('UserPassword');
     throw new UserError(
       400,
       errorPassword,
@@ -51,37 +51,19 @@ export async function create(user: UserCreateReq) {
 export async function auth(email: string, password: string) {
   const existsUser = await findByEmail(email);
   if (!existsUser) {
-    const error = new UserError(
+    throw new UserError(
       400,
       'Login fail',
       'USR_04',
       'No user was found with that email. Please check if you entered the correct email address or register.',
     );
-    if (error instanceof UserError) {
-      throw {
-        statusCode: error.statusCode,
-        code: error.code,
-        error: error.name,
-        message: error.message,
-        details: error.details,
-      };
-    }
-  } else {
-    const verifyHash = await verifyPassword(existsUser.password, password);
-    if (!verifyHash) {
-      const error = new UserError(400, 'Login fail', 'USR_05', 'Incorrect password. Try again.');
-      if (error instanceof UserError) {
-        throw {
-          statusCode: error.statusCode,
-          code: error.code,
-          error: error.name,
-          message: error.message,
-          details: error.details,
-        };
-      }
-    }
-    delete existsUser.password;
   }
+  const verifyHash = await verifyPassword(existsUser.password, password);
+  if (!verifyHash) {
+    throw new UserError(400, 'Login fail', 'USR_05', 'Incorrect password. Try again.');
+  }
+  delete existsUser.password;
+
   const token = '';
   return { existsUser, token };
 }
