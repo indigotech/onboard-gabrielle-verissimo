@@ -17,9 +17,9 @@ export async function createUser(request: FastifyRequest, reply: FastifyReply) {
 export async function authUser(request: FastifyRequest<{ Body: UserAuthReq }>, reply: FastifyReply) {
   const { email, password, rememberMe } = request.body;
   try {
-    const { existsUser } = await auth(email, password);
-    const token = `Bearer ${generateToken(existsUser.id, rememberMe)}`;
-    const rep = { user: existsUser, token };
+    const { user } = await auth(email, password);
+    const token = `Bearer ${generateToken(user.id, rememberMe)}`;
+    const rep = { user: user, token };
 
     return reply.send(rep);
   } catch (error: any) {

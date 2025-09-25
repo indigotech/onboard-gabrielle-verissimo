@@ -49,8 +49,8 @@ export async function create(user: UserCreateReq) {
 }
 
 export async function auth(email: string, password: string) {
-  const existsUser = await findByEmail(email);
-  if (!existsUser) {
+  const user = await findByEmail(email);
+  if (!user) {
     throw new UserError(
       400,
       'Login fail',
@@ -58,14 +58,13 @@ export async function auth(email: string, password: string) {
       'No user was found with that email. Please check if you entered the correct email address or register.',
     );
   }
-  const verifyHash = await verifyPassword(existsUser.password, password);
+  const verifyHash = await verifyPassword(user.password, password);
   if (!verifyHash) {
     throw new UserError(400, 'Login fail', 'USR_05', 'Incorrect password. Try again.');
   }
-  delete existsUser.password;
+  delete user.password;
 
-  const token = '';
-  return { existsUser, token };
+  return { user };
 }
 
 async function findByEmail(email: string) {
