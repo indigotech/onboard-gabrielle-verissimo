@@ -14,7 +14,6 @@ export async function create(user: UserCreateReq) {
   }
   if (!userPassword?.success) {
     const errorPassword: string = userPassword?.error.issues.map(e => e.message).join(' ') || '';
-    console.log('UserPassword');
     throw new UserError(
       400,
       errorPassword,

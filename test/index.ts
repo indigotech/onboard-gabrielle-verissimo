@@ -1,14 +1,7 @@
-import axios from 'axios';
 import { expect } from 'chai';
 import prismaInstance from '../src/db';
 import { closeServer, runServer } from '../src/server';
-import authTest from './auth-test';
-import createUserTest from './create-user-test';
-
-const port: number = process.env.PORT ? parseInt(process.env.PORT, 10) : 8081;
-const endpoint = axios.create({
-  baseURL: `http://localhost:${port}`,
-});
+import { endpoint, port } from './utils/config-test';
 
 before(async () => {
   try {
@@ -26,10 +19,11 @@ describe('Hello, world endpoint', () => {
   });
 });
 
-authTest(expect, endpoint, prismaInstance);
-createUserTest(expect, endpoint, prismaInstance);
+import './auth-test';
+import './create-user-test';
 
 after(async () => {
+  await prismaInstance.user.deleteMany();
   await prismaInstance.$disconnect();
   await closeServer();
 });

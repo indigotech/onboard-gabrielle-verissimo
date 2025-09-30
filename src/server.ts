@@ -10,7 +10,7 @@ declare module 'fastify' {
 }
 const app = Fastify();
 app.register(fastifyJwt, {
-  secret: process.env.SECRET_JWT || 'supersecret',
+  secret: String(process.env.SECRET_JWT),
 });
 
 export function generateToken(userId: string, rememberMe: boolean = false) {
