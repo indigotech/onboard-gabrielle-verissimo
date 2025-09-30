@@ -7,12 +7,14 @@
     "start": "node index.js",
     "dev": "tsx watch src/index.ts",
     "test": "dotenv -e test.env -- mocha test/index.ts",
+    "hash:test": "tsx test/utils/hash-test.ts",
     "prisma:test": "dotenv -e .env.test -- prisma migrate dev --name init"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@fastify/jwt": "10.0.0",
     "@prisma/client": "6.15.0",
     "argon2": "0.44.0",
     "axios": "1.12.0",
@@ -20,11 +22,13 @@
     "dotenv": "17.2.2",
     "dotenv-cli": "10.0.0",
     "fastify": "5.5.0",
+    "jsonwebtoken": "9.0.2",
     "zod": "4.1.5"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.2",
     "@types/chai": "5.2.2",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/mocha": "10.0.10",
     "@types/node": "24.3.1",
     "mocha": "11.7.2",

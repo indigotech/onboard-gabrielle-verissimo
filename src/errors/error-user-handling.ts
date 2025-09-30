@@ -1,6 +1,6 @@
 export default class UserError extends Error {
-  statusCode: number;
   message: string;
+  statusCode: number;
   code: string;
   details?: string;
 

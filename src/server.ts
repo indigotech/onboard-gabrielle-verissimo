@@ -1,8 +1,31 @@
-import Fastify from 'fastify';
-import { createUser } from './user/user.controller';
+import fastifyJwt from '@fastify/jwt';
+import Fastify, { FastifyReply, FastifyRequest } from 'fastify';
+import { authUser, createUser } from './user/user.controller';
 import UserError from './errors/error-user-handling';
 
+declare module 'fastify' {
+  interface FastifyInstance {
+    authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+  }
+}
 const app = Fastify();
+app.register(fastifyJwt, {
+  secret: String(process.env.SECRET_JWT),
+});
+
+export function generateToken(userId: string, rememberMe: boolean = false) {
+  const timeExpire = rememberMe ? '7d' : '1h';
+  return app.jwt.sign({ id: userId }, { expiresIn: timeExpire });
+}
+
+app.decorate('authenticate', async (request: FastifyRequest, reply: FastifyReply) => {
+  try {
+    await request.jwtVerify();
+  } catch (_error) {
+    const userError = new UserError(401, 'authentication failure', 'USR_10', 'Invalid Token');
+    reply.code(userError.statusCode).send(userError);
+  }
+});
 
 export async function runServer(port: number) {
   app.setErrorHandler((error, _request, reply) => {
@@ -20,8 +43,8 @@ export async function runServer(port: number) {
     return 'hello, world!';
   });
 
-  app.post('/users', createUser);
-
+  app.post('/auth', authUser);
+  app.post('/users', { onRequest: [app.authenticate] }, createUser);
   try {
     const server = await app.listen({ port });
     console.log(`The server is running on port ${port}`);

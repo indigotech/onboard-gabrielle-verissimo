@@ -1,12 +1,12 @@
-import { UserRep, UserReq } from './user.model';
+import { UserCreateRep, UserCreateReq } from './user.model';
 import { createUserValidation } from './user.validation';
-import { hashPassword } from '../utils/hash';
+import { hashPassword, verifyPassword } from '../utils/hash';
 import prismaInstance from '../db';
 import UserError from '../errors/error-user-handling';
 
 const prisma = prismaInstance;
 
-export async function create(user: UserReq) {
+export async function create(user: UserCreateReq) {
   const [userEmail, userPassword] = createUserValidation(user);
   if (!userEmail?.success) {
     const errorEmail: string = userEmail?.error.issues.map(e => e.message).join(' ') || '';
@@ -14,7 +14,6 @@ export async function create(user: UserReq) {
   }
   if (!userPassword?.success) {
     const errorPassword: string = userPassword?.error.issues.map(e => e.message).join(' ') || '';
-
     throw new UserError(
       400,
       errorPassword,
@@ -42,10 +41,29 @@ export async function create(user: UserReq) {
     },
   });
 
-  const reply: UserRep = post;
+  const reply: UserCreateRep = post;
   delete reply.password;
 
   return reply;
+}
+
+export async function auth(email: string, password: string) {
+  const user = await findByEmail(email);
+  if (!user) {
+    throw new UserError(
+      400,
+      'Login fail',
+      'USR_04',
+      'No user was found with that email. Please check if you entered the correct email address or register.',
+    );
+  }
+  const verifyHash = await verifyPassword(user.password, password);
+  if (!verifyHash) {
+    throw new UserError(400, 'Login fail', 'USR_05', 'Incorrect password. Try again.');
+  }
+  delete user.password;
+
+  return { user };
 }
 
 async function findByEmail(email: string) {
