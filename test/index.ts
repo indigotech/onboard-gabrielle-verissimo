@@ -21,6 +21,7 @@ describe('Hello, world endpoint', () => {
 
 import './auth-test';
 import './create-user-test';
+import './get-user-test';
 
 after(async () => {
   await prismaInstance.user.deleteMany();
