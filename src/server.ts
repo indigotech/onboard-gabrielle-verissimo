@@ -1,6 +1,6 @@
 import fastifyJwt from '@fastify/jwt';
 import Fastify, { FastifyReply, FastifyRequest } from 'fastify';
-import { authUser, createUser } from './user/user.controller';
+import { authUser, createUser, user } from './user/user.controller';
 import UserError from './errors/error-user-handling';
 
 declare module 'fastify' {
@@ -45,6 +45,8 @@ export async function runServer(port: number) {
 
   app.post('/auth', authUser);
   app.post('/users', { onRequest: [app.authenticate] }, createUser);
+  app.get('/users/:id', { onRequest: [app.authenticate] }, user);
+
   try {
     const server = await app.listen({ port });
     console.log(`The server is running on port ${port}`);

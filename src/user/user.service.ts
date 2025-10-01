@@ -66,6 +66,19 @@ export async function auth(email: string, password: string) {
   return { user };
 }
 
+export async function getUser(id: string) {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: id,
+    },
+  });
+  if (!user) {
+    throw new UserError(404, 'User not found', 'USR_06', 'No user was found with that ID.');
+  }
+  delete user.password;
+  return user;
+}
+
 async function findByEmail(email: string) {
   try {
     const uniqueEmail = await prisma.user.findUnique({
