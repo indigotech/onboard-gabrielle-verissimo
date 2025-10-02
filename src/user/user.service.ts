@@ -1,10 +1,8 @@
 import { UserCreateRep, UserCreateReq } from './user.model';
 import { createUserValidation } from './user.validation';
 import { hashPassword, verifyPassword } from '../utils/hash';
-import prismaInstance from '../db';
 import UserError from '../errors/error-user-handling';
-
-const prisma = prismaInstance;
+import { PrismaCreate, PrismaFindByEmail, PrismaGetUser } from './user.repository';
 
 export async function create(user: UserCreateReq) {
   const [userEmail, userPassword] = createUserValidation(user);
@@ -21,7 +19,7 @@ export async function create(user: UserCreateReq) {
       'The password must contain at least 6 characters and among them there must be at least 1 letter and 1 digit.',
     );
   }
-  const existsEmail = await findByEmail(user.email);
+  const existsEmail = await PrismaFindByEmail(user.email);
 
   if (existsEmail) {
     throw new UserError(
@@ -32,14 +30,7 @@ export async function create(user: UserCreateReq) {
     );
   }
   user.password = await hashPassword(user.password);
-  const post = await prisma.user.create({
-    data: {
-      name: user.name,
-      email: user.email,
-      password: user.password,
-      birthDate: user.birthDate,
-    },
-  });
+  const post = await PrismaCreate(user);
 
   const reply: UserCreateRep = post;
   delete reply.password;
@@ -48,7 +39,7 @@ export async function create(user: UserCreateReq) {
 }
 
 export async function auth(email: string, password: string) {
-  const user = await findByEmail(email);
+  const user = await PrismaFindByEmail(email);
   if (!user) {
     throw new UserError(
       400,
@@ -63,33 +54,13 @@ export async function auth(email: string, password: string) {
   }
   delete user.password;
 
-  return { user };
-}
-
-export async function getUser(id: string) {
-  const user = await prisma.user.findUnique({
-    where: {
-      id: id,
-    },
-  });
-  if (!user) {
-    throw new UserError(404, 'User not found', 'USR_06', 'No user was found with that ID.');
-  }
-  delete user.password;
   return user;
 }
 
-async function findByEmail(email: string) {
-  try {
-    const uniqueEmail = await prisma.user.findUnique({
-      where: {
-        email: email,
-      },
-    });
-
-    return uniqueEmail;
-  } catch (error) {
-    console.log(error);
-    return false;
+export async function getUser(id: string) {
+  const user = await PrismaGetUser(id);
+  if (!user) {
+    throw new UserError(404, 'User not found', 'USR_06', 'No user was found with that ID.');
   }
+  return user;
 }

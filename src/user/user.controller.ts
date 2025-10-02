@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { UserAuthReq, UserCreateRep, UserCreateReq } from './user.model';
 import { auth, create, getUser } from './user.service';
-import { generateToken } from '../server';
+import { generateToken } from '../auth';
 
 export async function createUser(request: FastifyRequest, reply: FastifyReply) {
   const user: UserCreateReq = request.body as UserCreateReq;
@@ -17,7 +17,7 @@ export async function createUser(request: FastifyRequest, reply: FastifyReply) {
 export async function authUser(request: FastifyRequest<{ Body: UserAuthReq }>, reply: FastifyReply) {
   const { email, password, rememberMe } = request.body;
   try {
-    const { user } = await auth(email, password);
+    const user = await auth(email, password);
     const token = `Bearer ${generateToken(user.id, rememberMe)}`;
     const rep = { user: user, token };
 
