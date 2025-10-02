@@ -32,3 +32,15 @@ export async function PrismaGetUser(id: string) {
     },
   });
 }
+
+export async function PrismaGetAllUsers(qnt: number) {
+  return await prisma.user.findMany({
+    take: qnt,
+    orderBy: {
+      name: 'asc',
+    },
+    omit: {
+      password: true,
+    },
+  });
+}

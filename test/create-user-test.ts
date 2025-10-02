@@ -14,6 +14,75 @@ const inputCreateUser: UserCreateReq = {
   birthDate: '09-09-2001',
 };
 
+const errorJwt = {
+  code: 'USR_10',
+  message: 'authentication failure',
+  details: 'Invalid Token',
+};
+
+const inputEmailExists: UserCreateReq = {
+  name: 'Gabrielle',
+  email: 'gabi@gmail.com',
+  password: 'coxinha123',
+  birthDate: '02-12-2000',
+};
+
+const inputPasswordWithoutDigit: UserCreateReq = {
+  name: 'Gabrielle',
+  email: 'gabi@gmail.com',
+  password: 'coxinha',
+  birthDate: '02-12-2000',
+};
+
+const inputPasswordLessThan6: UserCreateReq = {
+  name: 'Gabrielle',
+  email: 'gabi@gmail.com',
+  password: 'coxi1',
+  birthDate: '02-12-2000',
+};
+
+const inputPasswordNoLetter: UserCreateReq = {
+  name: 'Gabrielle',
+  email: 'gabi@gmail.com',
+  password: '1234567',
+  birthDate: '02-12-2000',
+};
+
+const inputPasswordLessThan6NoDigit: UserCreateReq = {
+  name: 'Gabrielle',
+  email: 'gabi@gmail.com',
+  password: 'coxi',
+  birthDate: '02-12-2000',
+};
+
+const inputPasswordLessThan6NoLetter: UserCreateReq = {
+  name: 'Gabrielle',
+  email: 'gabi@gmail.com',
+  password: '1234',
+  birthDate: '02-12-2000',
+};
+
+const inputPasswordNoLetterNoDigit: UserCreateReq = {
+  name: 'Gabrielle',
+  email: 'gabi@gmail.com',
+  password: '!!!!!!!!',
+  birthDate: '02-12-2000',
+};
+
+const inputPasswordAllInvalid: UserCreateReq = {
+  name: 'Gabrielle',
+  email: 'gabi@gmail.com',
+  password: '!!!',
+  birthDate: '02-12-2000',
+};
+
+const inputEmailInvalid: UserCreateReq = {
+  name: 'Gabrielle',
+  email: 'gabriellegmail.com',
+  password: 'coxinha123',
+  birthDate: '02-12-2000',
+};
+
 describe('Create user endpoint', () => {
   it('Response and create success', async () => {
     const response = await endpoint.post('/users', inputCreateUser, {
@@ -42,11 +111,6 @@ describe('Create user endpoint', () => {
 
   describe('Errors creating user', () => {
     it('Error when jwt is invalid', async () => {
-      const errorJwt = {
-        code: 'USR_10',
-        message: 'authentication failure',
-        details: 'Invalid Token',
-      };
       const response = await endpoint.post('/users', inputCreateUser, {
         headers: {
           Authorization: '12344jajaja',
@@ -58,13 +122,7 @@ describe('Create user endpoint', () => {
   });
 
   it('Error when email already exists', async () => {
-    const input: UserCreateReq = {
-      name: 'Gabrielle',
-      email: 'gabi@gmail.com',
-      password: 'coxinha123',
-      birthDate: '02-12-2000',
-    };
-    const response = await endpoint.post('/users', input, {
+    const response = await endpoint.post('/users', inputEmailExists, {
       headers: {
         Authorization: token,
       },
@@ -79,12 +137,6 @@ describe('Create user endpoint', () => {
 
   describe('Password invalid', () => {
     it('Error when password does not contain a digit', async () => {
-      const inputPasswordWithoutDigit: UserCreateReq = {
-        name: 'Gabrielle',
-        email: 'gabi@gmail.com',
-        password: 'coxinha',
-        birthDate: '02-12-2000',
-      };
       const response = await endpoint.post('/users', inputPasswordWithoutDigit, {
         headers: {
           Authorization: token,
@@ -101,12 +153,6 @@ describe('Create user endpoint', () => {
   });
 
   it('Error when password is less than 6 characters', async () => {
-    const inputPasswordLessThan6: UserCreateReq = {
-      name: 'Gabrielle',
-      email: 'gabi@gmail.com',
-      password: 'coxi1',
-      birthDate: '02-12-2000',
-    };
     const response = await endpoint.post('/users', inputPasswordLessThan6, {
       headers: {
         Authorization: token,
@@ -122,12 +168,6 @@ describe('Create user endpoint', () => {
   });
 
   it('Error when password does not contain a letter', async () => {
-    const inputPasswordNoLetter: UserCreateReq = {
-      name: 'Gabrielle',
-      email: 'gabi@gmail.com',
-      password: '1234567',
-      birthDate: '02-12-2000',
-    };
     const response = await endpoint.post('/users', inputPasswordNoLetter, {
       headers: {
         Authorization: token,
@@ -143,12 +183,6 @@ describe('Create user endpoint', () => {
   });
 
   it('Error when password is less than 6 characters and does not contain a digit', async () => {
-    const inputPasswordLessThan6NoDigit: UserCreateReq = {
-      name: 'Gabrielle',
-      email: 'gabi@gmail.com',
-      password: 'coxi',
-      birthDate: '02-12-2000',
-    };
     const response = await endpoint.post('/users', inputPasswordLessThan6NoDigit, {
       headers: {
         Authorization: token,
@@ -164,12 +198,6 @@ describe('Create user endpoint', () => {
   });
 
   it('Error when password is less than 6 characters and does not contain a letter', async () => {
-    const inputPasswordLessThan6NoLetter: UserCreateReq = {
-      name: 'Gabrielle',
-      email: 'gabi@gmail.com',
-      password: '1234',
-      birthDate: '02-12-2000',
-    };
     const response = await endpoint.post('/users', inputPasswordLessThan6NoLetter, {
       headers: {
         Authorization: token,
@@ -185,12 +213,6 @@ describe('Create user endpoint', () => {
   });
 
   it('Error when password does not contain a letter and does not contain a digit', async () => {
-    const inputPasswordNoLetterNoDigit: UserCreateReq = {
-      name: 'Gabrielle',
-      email: 'gabi@gmail.com',
-      password: '!!!!!!!!',
-      birthDate: '02-12-2000',
-    };
     const response = await endpoint.post('/users', inputPasswordNoLetterNoDigit, {
       headers: {
         Authorization: token,
@@ -206,12 +228,6 @@ describe('Create user endpoint', () => {
   });
 
   it('Error when password is less than 6 characters and does not contain a letter and does not contain a digit', async () => {
-    const inputPasswordAllInvalid: UserCreateReq = {
-      name: 'Gabrielle',
-      email: 'gabi@gmail.com',
-      password: '!!!',
-      birthDate: '02-12-2000',
-    };
     const response = await endpoint.post('/users', inputPasswordAllInvalid, {
       headers: {
         Authorization: token,
@@ -228,12 +244,6 @@ describe('Create user endpoint', () => {
   });
 
   it('Error when email is invalid', async () => {
-    const inputEmailInvalid: UserCreateReq = {
-      name: 'Gabrielle',
-      email: 'gabriellegmail.com',
-      password: 'coxinha123',
-      birthDate: '02-12-2000',
-    };
     const response = await endpoint.post('/users', inputEmailInvalid, {
       headers: {
         Authorization: token,
