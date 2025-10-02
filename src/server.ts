@@ -1,31 +1,15 @@
 import fastifyJwt from '@fastify/jwt';
-import Fastify, { FastifyReply, FastifyRequest } from 'fastify';
+import Fastify from 'fastify';
+import authPlugin from './auth';
 import { authUser, createUser, user } from './user/user.controller';
 import UserError from './errors/error-user-handling';
 
-declare module 'fastify' {
-  interface FastifyInstance {
-    authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
-  }
-}
-const app = Fastify();
+export const app = Fastify();
 app.register(fastifyJwt, {
-  secret: String(process.env.SECRET_JWT),
+  secret: process.env.SECRET_JWT || 'supersecret',
 });
 
-export function generateToken(userId: string, rememberMe: boolean = false) {
-  const timeExpire = rememberMe ? '7d' : '1h';
-  return app.jwt.sign({ id: userId }, { expiresIn: timeExpire });
-}
-
-app.decorate('authenticate', async (request: FastifyRequest, reply: FastifyReply) => {
-  try {
-    await request.jwtVerify();
-  } catch (_error) {
-    const userError = new UserError(401, 'authentication failure', 'USR_10', 'Invalid Token');
-    reply.code(userError.statusCode).send(userError);
-  }
-});
+authPlugin(app);
 
 export async function runServer(port: number) {
   app.setErrorHandler((error, _request, reply) => {
@@ -39,6 +23,7 @@ export async function runServer(port: number) {
       reply.status(500).send({ error: 'Internal Server Error' });
     }
   });
+
   app.get('/hello', () => {
     return 'hello, world!';
   });

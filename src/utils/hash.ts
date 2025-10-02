@@ -15,9 +15,9 @@ export async function verifyPassword(hash: string, password: string) {
     if (await argon2.verify(hash, password)) {
       return true;
     }
+    return false;
   } catch (error) {
     console.log(error);
     return false;
   }
-  return false;
 }
