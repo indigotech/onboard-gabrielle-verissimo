@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { UserAuthReq, UserCreateRep, UserCreateReq } from './user.model';
-import { auth, create, getUser } from './user.service';
+import { auth, create, getAllUsers, getUser } from './user.service';
 import { generateToken } from '../auth';
 
 export async function createUser(request: FastifyRequest, reply: FastifyReply) {
@@ -33,6 +33,17 @@ export async function user(request: FastifyRequest, reply: FastifyReply) {
   try {
     const user: UserCreateRep = await getUser(id);
     return reply.status(200).send(user);
+  } catch (error: any) {
+    const statusCode = error.statusCode || 500;
+    return reply.status(statusCode).send(error);
+  }
+}
+
+export async function listUsers(request: FastifyRequest, reply: FastifyReply) {
+  const { qnt } = request.params;
+  try {
+    const users = await getAllUsers(parseInt(qnt, 10));
+    return reply.status(200).send(users);
   } catch (error: any) {
     const statusCode = error.statusCode || 500;
     return reply.status(statusCode).send(error);

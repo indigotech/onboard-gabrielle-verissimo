@@ -1,7 +1,7 @@
 import fastifyJwt from '@fastify/jwt';
 import Fastify from 'fastify';
 import authPlugin from './auth';
-import { authUser, createUser, user } from './user/user.controller';
+import { authUser, createUser, listUsers, user } from './user/user.controller';
 import UserError from './errors/error-user-handling';
 
 export const app = Fastify();
@@ -31,6 +31,7 @@ export async function runServer(port: number) {
   app.post('/auth', authUser);
   app.post('/users', { onRequest: [app.authenticate] }, createUser);
   app.get('/users/:id', { onRequest: [app.authenticate] }, user);
+  app.get('/users/list/:qnt', { onRequest: [app.authenticate] }, listUsers);
 
   try {
     const server = await app.listen({ port });

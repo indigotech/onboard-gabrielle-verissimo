@@ -2,7 +2,7 @@ import { UserCreateRep, UserCreateReq } from './user.model';
 import { createUserValidation } from './user.validation';
 import { hashPassword, verifyPassword } from '../utils/hash';
 import UserError from '../errors/error-user-handling';
-import { PrismaCreate, PrismaFindByEmail, PrismaGetUser } from './user.repository';
+import { PrismaCreate, PrismaFindByEmail, PrismaGetAllUsers, PrismaGetUser } from './user.repository';
 
 export async function create(user: UserCreateReq) {
   const [userEmail, userPassword] = createUserValidation(user);
@@ -41,16 +41,11 @@ export async function create(user: UserCreateReq) {
 export async function auth(email: string, password: string) {
   const user = await PrismaFindByEmail(email);
   if (!user) {
-    throw new UserError(
-      400,
-      'Login fail',
-      'USR_04',
-      'No user was found with that email. Please check if you entered the correct email address or register.',
-    );
+    throw new UserError(400, 'Login fail', 'USR_04', 'Email or password incorrect. Try again.');
   }
   const verifyHash = await verifyPassword(user.password, password);
   if (!verifyHash) {
-    throw new UserError(400, 'Login fail', 'USR_05', 'Incorrect password. Try again.');
+    throw new UserError(400, 'Login fail', 'USR_04', 'Email or password incorrect. Try again.');
   }
   delete user.password;
 
@@ -60,7 +55,19 @@ export async function auth(email: string, password: string) {
 export async function getUser(id: string) {
   const user = await PrismaGetUser(id);
   if (!user) {
-    throw new UserError(404, 'User not found', 'USR_06', 'No user was found with that ID.');
+    throw new UserError(404, 'User not found', 'USR_05', 'No user was found with that ID.');
   }
   return user;
+}
+
+export async function getAllUsers(qnt: number) {
+  if (Number.isNaN(qnt) || qnt <= 0) {
+    qnt = 20;
+  }
+  const users = await PrismaGetAllUsers(qnt);
+  if (!users) {
+    throw new UserError(404, 'Users not found', 'USR_06', 'No users were found.');
+  }
+
+  return users;
 }

@@ -35,7 +35,7 @@ describe('Get user endpoint', () => {
     });
     expect(response.status).to.be.deep.eq(404);
     expect(response.data).to.be.deep.eq({
-      code: 'USR_06',
+      code: 'USR_05',
       message: 'User not found',
       details: 'No user was found with that ID.',
     });
