@@ -40,10 +40,16 @@ export async function user(request: FastifyRequest, reply: FastifyReply) {
 }
 
 export async function listUsers(request: FastifyRequest, reply: FastifyReply) {
-  const { qnt } = request.params;
+  const { skip, take } = request.query as { skip?: number; take?: number };
+
   try {
-    const users = await getAllUsers(parseInt(qnt, 10));
-    return reply.status(200).send(users);
+    const { total, previous, next, users } = await getAllUsers(Number(skip), Number(take));
+    return reply.status(200).send({
+      total,
+      previous,
+      next,
+      users,
+    });
   } catch (error: any) {
     const statusCode = error.statusCode || 500;
     return reply.status(statusCode).send(error);

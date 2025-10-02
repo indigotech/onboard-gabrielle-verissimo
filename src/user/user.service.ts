@@ -60,14 +60,26 @@ export async function getUser(id: string) {
   return user;
 }
 
-export async function getAllUsers(qnt: number) {
-  if (Number.isNaN(qnt) || qnt <= 0) {
-    qnt = 20;
+export async function getAllUsers(skip: number, take: number) {
+  if (Number.isNaN(take) || take <= 0) {
+    take = 20;
   }
-  const users = await PrismaGetAllUsers(qnt);
+  if (Number.isNaN(skip) || skip <= 0) {
+    skip = 0;
+  }
+  const [users, total] = await PrismaGetAllUsers(skip, take);
   if (!users) {
     throw new UserError(404, 'Users not found', 'USR_06', 'No users were found.');
   }
-
-  return users;
+  const previousCounter = skip - take < 0 || skip === 0 ? null : skip - take;
+  const nextCounter = take + skip >= total ? null : take + skip;
+  let previous = `http://localhost:8080/users/list?skip=${previousCounter}&take=${take}`;
+  if (previousCounter === null) {
+    previous = 'null';
+  }
+  let next = `http://localhost:8080/users/list?skip=${nextCounter}&take=${take}`;
+  if (nextCounter === null) {
+    next = 'null';
+  }
+  return { total, previous, next, users };
 }

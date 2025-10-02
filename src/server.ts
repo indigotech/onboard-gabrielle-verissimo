@@ -31,7 +31,7 @@ export async function runServer(port: number) {
   app.post('/auth', authUser);
   app.post('/users', { onRequest: [app.authenticate] }, createUser);
   app.get('/users/:id', { onRequest: [app.authenticate] }, user);
-  app.get('/users/list/:qnt', { onRequest: [app.authenticate] }, listUsers);
+  app.get('/users/list', { onRequest: [app.authenticate] }, listUsers);
 
   try {
     const server = await app.listen({ port });
