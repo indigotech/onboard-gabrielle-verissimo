@@ -33,14 +33,22 @@ export async function PrismaGetUser(id: string) {
   });
 }
 
-export async function PrismaGetAllUsers(qnt: number) {
-  return await prisma.user.findMany({
-    take: qnt,
-    orderBy: {
-      name: 'asc',
-    },
-    omit: {
-      password: true,
-    },
-  });
+export async function PrismaGetAllUsers(skip: number, take: number) {
+  return await prisma.$transaction([
+    prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        birthDate: true,
+        password: false,
+      },
+      skip,
+      take,
+      orderBy: {
+        name: 'asc',
+      },
+    }),
+    prisma.user.count(),
+  ]);
 }
