@@ -1,11 +1,31 @@
 import { UserCreateRep, UserCreateReq } from './user.model';
-import { createUserValidation } from './user.validation';
+import { cepValidate, createUserValidate } from './user.validation';
 import { hashPassword, verifyPassword } from '../utils/hash';
 import UserError from '../errors/error-user-handling';
 import { PrismaCreate, PrismaFindByEmail, PrismaGetAllUsers, PrismaGetUser } from './user.repository';
 
 export async function create(user: UserCreateReq) {
-  const [userEmail, userPassword] = createUserValidation(user);
+  const addresses = Array.isArray(user.address)
+    ? user.address.map(address => ({
+        ...address,
+        complement: address.complement ?? '',
+      }))
+    : [];
+
+  if (addresses.length > 0) {
+    for (const address of addresses) {
+      const validCep = await cepValidate(address.cep);
+      if (validCep !== true) {
+        throw new UserError(
+          400,
+          'Invalid CEP',
+          'USR_07',
+          `The CEP ${address.cep} is invalid. Please check if you entered the CEP correctly.`,
+        );
+      }
+    }
+  }
+  const [userEmail, userPassword] = createUserValidate(user);
   if (!userEmail?.success) {
     const errorEmail: string = userEmail?.error.issues.map(e => e.message).join(' ') || '';
     throw new UserError(400, errorEmail, 'USR_02', 'Invalid email. Please check if you entered the email correctly.');
@@ -30,7 +50,7 @@ export async function create(user: UserCreateReq) {
     );
   }
   user.password = await hashPassword(user.password);
-  const post = await PrismaCreate(user);
+  const post = await PrismaCreate(user, addresses);
 
   const reply: UserCreateRep = post;
   delete reply.password;

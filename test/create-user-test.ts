@@ -12,6 +12,26 @@ const inputCreateUser: UserCreateReq = {
   email: 'joao@gmail.com',
   password: 'senha123',
   birthDate: '09-09-2001',
+  address: [
+    {
+      cep: '01310-000',
+      street: 'Avenida Paulista',
+      streetNumber: '1000',
+      complement: '',
+      neighborhood: 'Bela Vista',
+      city: 'São Paulo',
+      state: 'SP',
+    },
+    {
+      cep: '20040-020',
+      street: 'Rua da Assembleia',
+      streetNumber: '10',
+      complement: 'Sala 101',
+      neighborhood: 'Centro',
+      city: 'Rio de Janeiro',
+      state: 'RJ',
+    },
+  ],
 };
 
 const errorJwt = {
@@ -101,11 +121,21 @@ describe('Create user endpoint', () => {
     const verifyHash = await verifyPassword(userCreated.password, inputCreateUser.password);
     expect(verifyHash).to.be.eq(true);
     expect(response.status).to.be.deep.eq(201);
-    expect(response.data).to.be.deep.eq({
-      id: userCreated.id,
-      name: inputCreateUser.name,
-      email: inputCreateUser.email,
-      birthDate: inputCreateUser.birthDate,
+    expect(response.data.id).to.be.eq(userCreated.id);
+    expect(response.data.name).to.be.eq(inputCreateUser.name);
+    expect(response.data.email).to.be.eq(inputCreateUser.email);
+    expect(response.data.birthDate).to.be.eq(inputCreateUser.birthDate);
+    expect(response.data.address).to.have.lengthOf(inputCreateUser.address.length);
+
+    response.data.address.forEach((addr: any, idx: number) => {
+      expect(addr.cep).to.be.eq(inputCreateUser.address[idx].cep);
+      expect(addr.street).to.be.eq(inputCreateUser.address[idx].street);
+      expect(addr.streetNumber).to.be.eq(inputCreateUser.address[idx].streetNumber);
+      expect(addr.complement).to.be.eq(inputCreateUser.address[idx].complement);
+      expect(addr.neighborhood).to.be.eq(inputCreateUser.address[idx].neighborhood);
+      expect(addr.city).to.be.eq(inputCreateUser.address[idx].city);
+      expect(addr.state).to.be.eq(inputCreateUser.address[idx].state);
+      expect(addr.userId).to.be.eq(userCreated.id);
     });
   });
 

@@ -14,9 +14,23 @@ datasource db {
 }
 
 model User {
-  id        String @id @default(uuid())
+  id        String    @id @default(uuid())
   name      String
-  email     String @unique
+  email     String    @unique
   password  String
   birthDate String
+  address   Address[]
+}
+
+model Address {
+  id           String @id @default(uuid())
+  cep          String
+  street       String
+  streetNumber String
+  complement   String
+  neighborhood String
+  city         String
+  state        String
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
 }
