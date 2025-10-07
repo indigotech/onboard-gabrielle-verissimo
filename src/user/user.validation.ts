@@ -1,3 +1,4 @@
+import { consultarCep as cep } from 'correios-brasil';
 import { z } from 'zod';
 import { UserCreateReq } from './user.model';
 
@@ -8,8 +9,19 @@ const password = z
   .regex(/[a-zA-Z]/, { message: 'Password must contain at least one letter.' })
   .regex(/[0-9]/, { message: 'Password must contain at least one digit.' });
 
-export function createUserValidation(user: UserCreateReq) {
+export function createUserValidate(user: UserCreateReq) {
   const userEmail = email.safeParse(user.email);
   const userPassword = password.safeParse(user.password);
+
   return [userEmail, userPassword];
+}
+
+export async function cepValidate(cepString: string) {
+  try {
+    await cep(cepString);
+    return true;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
 }

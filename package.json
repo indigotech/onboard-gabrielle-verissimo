@@ -10,7 +10,7 @@
     "hash:test": "tsx test/utils/hash-test.ts",
     "prisma:test": "dotenv -e test.env -- prisma migrate dev --name init",
     "seeds": "tsx prisma/seed.ts",
-    "seeds:test": "dotenv -e test.env -- tsx prisma/seed.ts"
+    "seeds:test": "dotenv -e test.env -- tsx test/utils/seed-test.ts"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +22,7 @@
     "argon2": "0.44.0",
     "axios": "1.12.0",
     "chai": "6.0.1",
+    "correios-brasil": "3.0.6",
     "dotenv": "17.2.2",
     "dotenv-cli": "10.0.0",
     "fastify": "5.5.0",

@@ -18,10 +18,11 @@ describe('List users endpoint', () => {
     expect(response.data).to.have.property('next');
     expect(response.data).to.have.property('users');
     response.data.users.forEach((user: UserCreateRep) => {
-      expect(user).to.have.all.keys(['id', 'name', 'email', 'birthDate']);
+      expect(user).to.have.all.keys(['id', 'name', 'email', 'birthDate', 'address']);
     });
     expect(response.data.users).to.have.lengthOf(30);
   });
+
   it('Response and list without limit', async () => {
     const response = await endpoint.get('/users/list', {
       headers: {
@@ -34,10 +35,11 @@ describe('List users endpoint', () => {
     expect(response.data).to.have.property('next');
     expect(response.data).to.have.property('users');
     response.data.users.forEach((user: UserCreateRep) => {
-      expect(user).to.have.all.keys(['id', 'name', 'email', 'birthDate']);
+      expect(user).to.have.all.keys(['id', 'name', 'email', 'birthDate', 'address']);
     });
     expect(response.data.users).to.have.lengthOf(20);
   });
+
   it('Response and list with skip 2 and limit 5', async () => {
     const response = await endpoint.get('/users/list?skip=2&take=5', {
       headers: {
@@ -50,10 +52,11 @@ describe('List users endpoint', () => {
     expect(response.data).to.have.property('next');
     expect(response.data).to.have.property('users');
     response.data.users.forEach((user: UserCreateRep) => {
-      expect(user).to.have.all.keys(['id', 'name', 'email', 'birthDate']);
+      expect(user).to.have.all.keys(['id', 'name', 'email', 'birthDate', 'address']);
     });
     expect(response.data.users).to.have.lengthOf(5);
   });
+
   it('Response and list with skip negative and limit negative', async () => {
     const response = await endpoint.get('/users/list?skip=-2&take=-5', {
       headers: {
@@ -66,10 +69,11 @@ describe('List users endpoint', () => {
     expect(response.data).to.have.property('next');
     expect(response.data).to.have.property('users');
     response.data.users.forEach((user: UserCreateRep) => {
-      expect(user).to.have.all.keys(['id', 'name', 'email', 'birthDate']);
+      expect(user).to.have.all.keys(['id', 'name', 'email', 'birthDate', 'address']);
     });
     expect(response.data.users).to.have.lengthOf(20);
   });
+
   it('Response and list with skip NaN and limit NaN', async () => {
     const response = await endpoint.get('/users/list?skip=abc&take=def', {
       headers: {
@@ -82,7 +86,7 @@ describe('List users endpoint', () => {
     expect(response.data).to.have.property('next');
     expect(response.data).to.have.property('users');
     response.data.users.forEach((user: UserCreateRep) => {
-      expect(user).to.have.all.keys(['id', 'name', 'email', 'birthDate']);
+      expect(user).to.have.all.keys(['id', 'name', 'email', 'birthDate', 'address']);
     });
     expect(response.data.users).to.have.lengthOf(20);
   });
